@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -10,6 +11,7 @@ public class MainManager : MonoBehaviour
     public int LineCount = 6;
     public Rigidbody Ball;
 
+    public Text bestScoreText;
     public Text ScoreText;
     public GameObject GameOverText;
     
@@ -17,6 +19,7 @@ public class MainManager : MonoBehaviour
     private int m_Points;
     
     private bool m_GameOver = false;
+    private int m_bestScore = 0;
 
     
     // Start is called before the first frame update
@@ -36,6 +39,9 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+
+        m_Points = 0;
+        LoadBestScore();
     }
 
     private void Update()
@@ -62,6 +68,20 @@ public class MainManager : MonoBehaviour
         }
     }
 
+    private void LoadBestScore()
+    {
+        if (bestScoreText != null)
+        {
+            BestScore bestScore = StorageManager.Instance.bestScore;
+            if (bestScore != null)
+            {
+                Debug.Log($"Best Score: {bestScore.bestScore}, Player: {bestScore.bestPlayerName}");
+                bestScoreText.text = "Best Score: " + bestScore.bestPlayerName + " " + bestScore.bestScore;
+                m_bestScore = bestScore.bestScore;
+            }
+        }
+    }
+
     void AddPoint(int point)
     {
         m_Points += point;
@@ -72,5 +92,23 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+        UpdateBestScore();
+        if (StorageManager.Instance.bestScore != null) 
+        {
+            StorageManager.Instance.StoreBestScore();
+            Debug.Log("Store best score...");
+        }
+    }
+
+    private void UpdateBestScore()
+    {
+        if (StorageManager.Instance.bestScore != null)
+        {
+            if (m_Points > m_bestScore)
+            {
+                StorageManager.Instance.UpdateBestScore(m_Points);
+                Debug.Log("Update best score...");
+            }
+        }
     }
 }
